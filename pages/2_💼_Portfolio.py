@@ -13,7 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from config.settings import settings
-from utils.api_client import coingecko_client
+from utils.pyth_client import pyth_client
 from utils.visualizations import create_portfolio_pie_chart
 
 # Page configuration
@@ -32,7 +32,7 @@ if 'portfolio' not in st.session_state:
 def fetch_current_prices():
     """Fetch current prices for portfolio calculation."""
     try:
-        return coingecko_client.get_current_prices(settings.TRACKED_COINS)
+        return pyth_client.get_current_prices(settings.TRACKED_COINS)
     except Exception as e:
         st.error(f"Error fetching prices: {e}")
         return None

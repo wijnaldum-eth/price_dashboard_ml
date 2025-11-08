@@ -55,6 +55,12 @@ class Settings:
     CRYPTOPANIC_API_URL: str = "https://cryptopanic.com/api/v1"
     CRYPTOPANIC_API_KEY: str = os.getenv("CRYPTOPANIC_API_KEY", "")
     
+    # Pyth Network API Configuration
+    PYTH_API_URL: str = "https://api.pyth.network"
+    PYTH_API_TIMEOUT: int = 10  # seconds
+    PYTH_API_RETRY_ATTEMPTS: int = 3
+    PYTH_API_RETRY_DELAY: int = 2  # seconds
+    
     # Model Configuration
     LSTM_EPOCHS: int = int(os.getenv("LSTM_EPOCHS", "50"))
     LSTM_BATCH_SIZE: int = int(os.getenv("LSTM_BATCH_SIZE", "32"))
@@ -62,19 +68,14 @@ class Settings:
     LSTM_PREDICTION_DAYS: int = 7  # days to predict into future
     MODEL_SAVE_PATH: Path = Path(os.getenv("MODEL_SAVE_PATH", "./models"))
     
-    # Tracked Cryptocurrencies
+    # Tracked cryptocurrencies (Pyth Network compatible IDs)
     TRACKED_COINS = [
-        "bitcoin",
-        "ethereum",
-        "solana",
-        "cardano",
-        "polkadot",
-        "avalanche-2",
-        "polygon",
-        "chainlink",
-        "uniswap",
-        "cosmos"
+        'bitcoin', 'ethereum', 'solana', 'cardano', 'polkadot',
+        'avalanche-2', 'matic-network', 'chainlink', 'uniswap', 'cosmos'
     ]
+    
+    # API Provider (pyth or coingecko)
+    API_PROVIDER = os.getenv('API_PROVIDER', 'pyth')
     
     COIN_DISPLAY_NAMES = {
         "bitcoin": "Bitcoin (BTC)",

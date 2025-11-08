@@ -13,7 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from config.settings import settings
-from utils.api_client import coingecko_client
+from utils.pyth_client import pyth_client
 from utils.cache_manager import cache_manager
 from utils.data_processing import normalize_prices
 from utils.visualizations import create_price_chart, create_comparison_chart
@@ -45,7 +45,7 @@ st.markdown("""
 def fetch_market_data(force_refresh=False):
     """Fetch current market data for tracked coins."""
     try:
-        data = coingecko_client.get_current_prices(settings.TRACKED_COINS)
+        data = pyth_client.get_current_prices(settings.TRACKED_COINS)
         return data
     except Exception as e:
         st.error(f"Error fetching market data: {e}")
@@ -163,7 +163,7 @@ def main():
                     # Fetch historical data for selected coins
                     comparison_data = {}
                     for coin_id in selected_coin_ids:
-                        df = coingecko_client.get_historical_data(coin_id, days=days)
+                        df = pyth_client.get_historical_data(coin_id, days=days)
                         if normalize:
                             df = normalize_prices(df)
                         comparison_data[coin_id] = df

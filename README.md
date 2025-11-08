@@ -159,7 +159,8 @@ Currently tracking top 10 coins (configurable in `config/settings.py`):
 
 ## 📊 Data Sources
 
-- **Market Data**: [CoinGecko API](https://www.coingecko.com/en/api) (Free tier, 50 calls/min)
+- **Market Data**: [Pyth Network](https://pyth.network/) (Real-time oracle data, no rate limits) - Primary
+- **Market Data (Alternative)**: [CoinGecko API](https://www.coingecko.com/en/api) (Free tier, 50 calls/min)
 - **AI Analysis**: [Venice AI API](https://venice.ai) (Requires API key)
 - **News**: CryptoPanic API (Coming soon)
 
