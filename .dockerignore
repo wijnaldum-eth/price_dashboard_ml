@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.pyc
+
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Environment variables (will be passed via docker-compose)
+.env
+
+# Documentation
+README.md
+ARCHITECTURE.md
+DEPLOYMENT.md
+Giga-AI-Vibe-Coding-Guide.md
+
+# Tasks and planning
+tasks/
+ai-dev-tasks/
+
+# Testing
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+*.test.py
+
+# Logs (will be mounted as volume)
+logs/
+*.log
+
+# Cache
+.cache/
+*.cache
+
+# Temporary files
+*.tmp
+*.bak
+
+# Docker files (don't need these inside the image)
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Models (will be mounted as volume)
+models/*.h5
+models/*.pkl
+models/*.joblib
