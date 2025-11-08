@@ -11,7 +11,7 @@ import time
 
 from config.settings import settings
 from utils.exceptions import APIError
-from utils.cache_manager import cache_manager
+from utils.cache_manager import cached
 
 # Configure logging
 logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL))
@@ -129,7 +129,7 @@ class PythNetworkClient:
             logger.error(f"Invalid JSON response from {url}: {e}")
             raise APIError(f"Invalid JSON response: {str(e)}")
     
-    @cache_manager.cached(ttl=settings.CACHE_TTL_PRICES)
+    @cached(ttl=settings.CACHE_TTL_PRICES, key_prefix="pyth_prices")
     def get_current_prices(self, coin_ids: List[str]) -> Dict:
         """
         Fetch current prices for multiple cryptocurrencies.
