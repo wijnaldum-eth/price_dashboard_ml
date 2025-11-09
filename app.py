@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import requests
 from datetime import datetime, timedelta
 import os
 import sys
@@ -12,6 +11,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from config.settings import settings
+from utils.pyth_client import pyth_client
+from utils.exceptions import APIError
 
 # Validate configuration
 try:
@@ -60,37 +61,48 @@ st.markdown("""
 if 'selected_coin' not in st.session_state:
     st.session_state.selected_coin = 'bitcoin'
 
-# CoinGecko API functions
+# Pyth Network API functions
+@st.cache_data(ttl=settings.CACHE_TTL_PRICES)
 def get_top_cryptos(limit=10):
-    """Fetch top N cryptocurrencies by market cap"""
-    url = f"https://api.coingecko.com/api/v3/coins/markets"
-    params = {
-        'vs_currency': 'usd',
-        'order': 'market_cap_desc',
-        'per_page': limit,
-        'page': 1,
-        'sparkline': False,
-        'price_change_percentage': '24h,7d'
-    }
-    response = requests.get(url, params=params)
-    return response.json()
+    """Fetch top N cryptocurrencies from Pyth Network"""
+    try:
+        # Get tracked coins from settings
+        coin_ids = settings.TRACKED_COINS[:limit]
+        prices_data = pyth_client.get_current_prices(coin_ids)
+        
+        # Convert to list format expected by the UI
+        result = []
+        for coin_id, data in prices_data.items():
+            result.append(data)
+        
+        return result
+    except APIError as e:
+        st.error(f"Pyth Network API Error: {str(e)}")
+        return []
+    except Exception as e:
+        st.error(f"Error fetching data from Pyth Network: {str(e)}")
+        return []
 
+@st.cache_data(ttl=settings.CACHE_TTL_HISTORICAL)
 def get_coin_data(coin_id, days=30):
-    """Fetch historical data for a specific coin"""
-    url = f"https://api.coingecko.com/api/v3/coins/{coin_id}/market_chart"
-    params = {
-        'vs_currency': 'usd',
-        'days': days,
-        'interval': 'daily'
-    }
-    response = requests.get(url, params=params)
-    return response.json()
-
-def get_coin_info(coin_id):
-    """Fetch detailed information about a specific coin"""
-    url = f"https://api.coingecko.com/api/v3/coins/{coin_id}"
-    response = requests.get(url)
-    return response.json()
+    """Fetch historical data for a specific coin from Pyth Network"""
+    try:
+        df = pyth_client.get_historical_data(coin_id, days=days)
+        
+        # Convert DataFrame to the format expected by process_historical_data
+        if not df.empty:
+            # Convert to millisecond timestamps and create prices array
+            prices = [[int(ts.timestamp() * 1000), price] 
+                     for ts, price in zip(df['timestamp'], df['price'])]
+            return {'prices': prices, 'market_caps': [], 'total_volumes': []}
+        else:
+            return {'prices': [], 'market_caps': [], 'total_volumes': []}
+    except APIError as e:
+        st.warning(f"Could not fetch historical data: {str(e)}")
+        return {'prices': [], 'market_caps': [], 'total_volumes': []}
+    except Exception as e:
+        st.warning(f"Error processing historical data: {str(e)}")
+        return {'prices': [], 'market_caps': [], 'total_volumes': []}
 
 # Data processing functions
 def process_market_data(data):
@@ -127,25 +139,49 @@ def render_sidebar():
         index=2
     )
     
-    # Get top 10 cryptocurrencies
-    try:
-        top_coins = get_top_cryptos(limit=10)
-        coin_names = [f"{coin['name']} ({coin['symbol'].upper()})" for coin in top_coins]
-        coin_ids = [coin['id'] for coin in top_coins]
-        
-        # Coin selection
-        selected_coin_name = st.sidebar.selectbox(
-            "Select Cryptocurrency",
-            coin_names,
-            index=0
-        )
-        st.session_state.selected_coin = coin_ids[coin_names.index(selected_coin_name)]
-        
-    except Exception as e:
-        st.sidebar.error(f"Error fetching coin data: {str(e)}")
+    # Get top cryptocurrencies from Pyth Network
+    top_coins = get_top_cryptos(limit=10)
+    
+    if top_coins and len(top_coins) > 0:
+        try:
+            # Build coin selection lists
+            coin_names = [f"{coin['name']} ({coin['symbol']})" for coin in top_coins]
+            coin_ids = [coin['id'] for coin in top_coins]
+            
+            # Find current selection index
+            current_index = 0
+            if 'selected_coin' in st.session_state and st.session_state.selected_coin in coin_ids:
+                current_index = coin_ids.index(st.session_state.selected_coin)
+            
+            # Coin selection dropdown
+            selected_coin_name = st.sidebar.selectbox(
+                "Select Cryptocurrency",
+                coin_names,
+                index=current_index,
+                key="coin_selector"
+            )
+            
+            # Update session state
+            new_coin_id = coin_ids[coin_names.index(selected_coin_name)]
+            if st.session_state.selected_coin != new_coin_id:
+                st.session_state.selected_coin = new_coin_id
+                st.rerun()
+            
+        except Exception as e:
+            st.sidebar.error(f"Error processing coin data: {str(e)}")
+            # Fallback to default
+            if 'selected_coin' not in st.session_state:
+                st.session_state.selected_coin = 'bitcoin'
+    else:
+        st.sidebar.warning("Unable to load cryptocurrency list from Pyth Network")
+        # Fallback to default
+        if 'selected_coin' not in st.session_state:
+            st.session_state.selected_coin = 'bitcoin'
     
     st.sidebar.markdown("---")
-    st.sidebar.info("ℹ️ Data provided by CoinGecko API")
+    st.sidebar.info("ℹ️ Real-time data powered by Pyth Network 🔮")
+    
+    return time_period
 
 def render_metrics(coin_data):
     """Render key metrics for the selected coin"""
@@ -224,15 +260,23 @@ def render_ai_insights(coin_data):
 # Main app
 def main():
     # Sidebar
-    render_sidebar()
+    time_period = render_sidebar()
     
     # Main content
     st.title("📊 CryptoInsight Pro")
-    st.markdown("Real-time cryptocurrency market intelligence and analytics")
+    st.markdown("Real-time cryptocurrency market intelligence powered by **Pyth Network** 🔮")
+    
+    # Get top coins data
+    top_coins = get_top_cryptos(limit=10)
+    
+    if not top_coins or len(top_coins) == 0:
+        st.error("Unable to load cryptocurrency data. Please try again later.")
+        st.info("This may be due to API rate limits or network issues.")
+        return
     
     try:
         # Get and display coin data
-        coin_data = next((coin for coin in get_top_cryptos(limit=10) 
+        coin_data = next((coin for coin in top_coins 
                          if coin['id'] == st.session_state.selected_coin), None)
         
         if coin_data:
@@ -241,17 +285,29 @@ def main():
             
             # Chart section
             st.markdown("---")
-            historical_data = get_coin_data(st.session_state.selected_coin, days=30)
-            df_historical = process_historical_data(historical_data)
-            render_price_chart(df_historical)
+            
+            # Map time period to days
+            days_map = {"24h": 1, "7d": 7, "30d": 30, "90d": 90, "1y": 365}
+            days = days_map.get(time_period, 30)
+            
+            historical_data = get_coin_data(st.session_state.selected_coin, days=days)
+            df_historical = process_historical_data(historical_data, days=days)
+            
+            if not df_historical.empty:
+                render_price_chart(df_historical)
+            else:
+                st.warning(f"No historical data available for {coin_data['name']}")
             
             # AI Insights
             st.markdown("---")
             render_ai_insights(coin_data)
+        else:
+            st.error(f"Could not find data for selected coin: {st.session_state.selected_coin}")
+            st.info("Please select a different cryptocurrency from the sidebar.")
             
     except Exception as e:
         st.error(f"Error loading data: {str(e)}")
-        st.info("Please check your internet connection and try again.")
+        st.info("Please try selecting a different cryptocurrency or refresh the page.")
 
 if __name__ == "__main__":
     main()
