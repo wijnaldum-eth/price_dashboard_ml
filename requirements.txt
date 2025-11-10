@@ -12,9 +12,6 @@ plotly==5.18.0
 requests==2.31.0
 aiohttp==3.9.0
 
-# Caching
-redis==5.0.1
-
 # Configuration
 python-dotenv==1.0.0
 

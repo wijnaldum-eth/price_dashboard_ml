@@ -1,24 +1,6 @@
 version: '3.8'
 
 services:
-  # Redis cache service
-  redis:
-    image: redis:7-alpine
-    container_name: crypto-dashboard-redis
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    command: redis-server --appendonly yes
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - crypto-network
-
   # Streamlit application
   app:
     build:
@@ -30,31 +12,15 @@ services:
       - "8501:8501"
     environment:
       - VENICE_API_KEY=${VENICE_API_KEY}
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_DB=0
       - APP_ENV=production
       - DEBUG_MODE=false
       - LOG_LEVEL=INFO
     volumes:
       - ./models:/app/models
       - ./logs:/app/logs
-    depends_on:
-      redis:
-        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    networks:
-      - crypto-network
-
-volumes:
-  redis_data:
-    driver: local
-
-networks:
-  crypto-network:
-    driver: bridge

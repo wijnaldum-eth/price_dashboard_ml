@@ -11,8 +11,6 @@ services:
           - global: true
     env:
       - VENICE_API_KEY=
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
       - APP_ENV=production
       - DEBUG_MODE=false
       - LOG_LEVEL=INFO
@@ -23,18 +21,6 @@ services:
           readOnly: false
         logs:
           mount: /app/logs
-          readOnly: false
-  
-  redis:
-    image: redis:7-alpine
-    expose:
-      - port: 6379
-        to:
-          - service: app
-    params:
-      storage:
-        data:
-          mount: /data
           readOnly: false
 
 profiles:
@@ -55,34 +41,16 @@ profiles:
             size: 1Gi
             attributes:
               persistent: true
-    redis:
-      resources:
-        cpu:
-          units: 0.5
-        memory:
-          size: 512Mi
-        storage:
-          - name: data
-            size: 2Gi
-            attributes:
-              persistent: true
-  
+
   placement:
     dcloud:
       pricing:
         app:
           denom: uakt
           amount: 1000
-        redis:
-          denom: uakt
-          amount: 500
 
 deployment:
   app:
     dcloud:
       profile: app
-      count: 1
-  redis:
-    dcloud:
-      profile: redis
       count: 1
