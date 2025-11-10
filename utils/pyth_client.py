@@ -229,32 +229,43 @@ class PythNetworkClient:
         Returns:
             DataFrame with columns: timestamp, price
         """
-        import pandas as pd
-        import numpy as np
-        
+        # Try to generate simulated historical data without relying on heavy binary
+        # dependencies (pandas/numpy). Return a simple dict with a 'prices' list so
+        # callers can handle both pandas DataFrame and lightweight dict returns.
+        import random
+        from datetime import timedelta
+
         logger.warning(f"Pyth Network doesn't provide historical REST API. Returning simulated data for {coin_id}")
-        
+
         # Get current price
         current_data = self.get_current_prices([coin_id])
         if not current_data or coin_id not in current_data:
             raise APIError(f"Could not fetch current price for {coin_id}")
-        
-        current_price = current_data[coin_id]['current_price']
-        
-        # Generate simulated historical data with realistic volatility
-        timestamps = pd.date_range(end=datetime.now(), periods=days * 24, freq='H')
-        
-        # Add some realistic price movement
+
+        current_price = float(current_data[coin_id]['current_price'])
+
+        total_hours = max(1, days * 24)
+        now = datetime.now()
+
+        # Generate hourly timestamps and simulated prices using geometric Brownian motion
+        timestamps = []
+        prices = []
+        price = current_price
         volatility = 0.02  # 2% hourly volatility
-        returns = np.random.normal(0, volatility, len(timestamps))
-        prices = current_price * np.exp(np.cumsum(returns))
-        
-        df = pd.DataFrame({
-            'timestamp': timestamps,
-            'price': prices
-        })
-        
-        return df
+
+        for i in range(total_hours):
+            # step backwards from now
+            ts = now - timedelta(hours=(total_hours - 1 - i))
+            # simple random return
+            r = random.gauss(0, volatility)
+            price = price * (2.718281828459045 ** r)
+            timestamps.append(ts)
+            prices.append(float(price))
+
+        # Return a lightweight structure consumable by app.get_coin_data
+        prices_ms = [[int(ts.timestamp() * 1000), p] for ts, p in zip(timestamps, prices)]
+
+        return {'prices': prices_ms, 'market_caps': [], 'total_volumes': []}
     
     def get_trending_coins(self) -> List[Dict]:
         """

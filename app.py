@@ -1,5 +1,8 @@
 import streamlit as st
-import pandas as pd
+try:
+    import pandas as pd
+except Exception:
+    pd = None
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
@@ -87,15 +90,26 @@ def get_top_cryptos(limit=10):
 def get_coin_data(coin_id, days=30):
     """Fetch historical data for a specific coin from Pyth Network"""
     try:
-        df = pyth_client.get_historical_data(coin_id, days=days)
-        
-        # Convert DataFrame to the format expected by process_historical_data
-        if not df.empty:
-            # Convert to millisecond timestamps and create prices array
-            prices = [[int(ts.timestamp() * 1000), price] 
-                     for ts, price in zip(df['timestamp'], df['price'])]
-            return {'prices': prices, 'market_caps': [], 'total_volumes': []}
+        res = pyth_client.get_historical_data(coin_id, days=days)
+
+        # pyth_client may return a pandas DataFrame or a lightweight dict.
+        if pd is not None and hasattr(res, 'empty'):
+            # pandas DataFrame path
+            if not res.empty:
+                prices = [[int(ts.timestamp() * 1000), price]
+                          for ts, price in zip(res['timestamp'], res['price'])]
+                return {'prices': prices, 'market_caps': [], 'total_volumes': []}
+            else:
+                return {'prices': [], 'market_caps': [], 'total_volumes': []}
+        elif isinstance(res, dict):
+            # pyth_client returned our lightweight dict (already in expected shape)
+            return {
+                'prices': res.get('prices', []),
+                'market_caps': res.get('market_caps', []),
+                'total_volumes': res.get('total_volumes', [])
+            }
         else:
+            # Unknown format: return empty
             return {'prices': [], 'market_caps': [], 'total_volumes': []}
     except APIError as e:
         st.warning(f"Could not fetch historical data: {str(e)}")
@@ -107,6 +121,10 @@ def get_coin_data(coin_id, days=30):
 # Data processing functions
 def process_market_data(data):
     """Process market data into a pandas DataFrame"""
+    if pd is None:
+        # Return the raw list/dict to avoid importing pandas in constrained envs
+        return data
+
     df = pd.DataFrame(data)
     if not df.empty:
         # Convert timestamp to datetime
@@ -120,12 +138,39 @@ def process_historical_data(data, days=30):
     """Process historical price data"""
     prices = data.get('prices', [])
     if not prices:
-        return pd.DataFrame()
-    
-    df = pd.DataFrame(prices, columns=['timestamp', 'price'])
-    df['date'] = pd.to_datetime(df['timestamp'], unit='ms')
-    df = df.set_index('date')
-    return df
+        if pd is not None:
+            return pd.DataFrame()
+        else:
+            class _Empty:
+                empty = True
+            return _Empty()
+
+    # If pandas is available, return a DataFrame for plotting convenience
+    if pd is not None:
+        df = pd.DataFrame(prices, columns=['timestamp', 'price'])
+        df['date'] = pd.to_datetime(df['timestamp'], unit='ms')
+        df = df.set_index('date')
+        return df
+
+    # Lightweight fallback: create a minimal object that supports the
+    # properties used by render_price_chart (index and __getitem__ for 'price').
+    from datetime import datetime
+
+    dates = [datetime.fromtimestamp(p[0] / 1000.0) for p in prices]
+    price_vals = [p[1] for p in prices]
+
+    class SimpleDF:
+        def __init__(self, index, prices):
+            self.index = index
+            self._prices = prices
+            self.empty = len(prices) == 0
+
+        def __getitem__(self, key):
+            if key == 'price':
+                return self._prices
+            raise KeyError(key)
+
+    return SimpleDF(dates, price_vals)
 
 # UI Components
 def render_sidebar():

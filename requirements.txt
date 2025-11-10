@@ -2,8 +2,8 @@
 streamlit==1.28.2
 
 # Data Processing
-pandas==2.0.3
-numpy==1.24.4
+# pandas and numpy removed to avoid heavy builds on Streamlit Cloud; app
+# includes lightweight fallbacks when these are not available.
 
 # Visualization
 plotly==5.18.0
