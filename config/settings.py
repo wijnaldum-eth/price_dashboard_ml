@@ -126,17 +126,8 @@ class Settings:
     @classmethod
     def validate(cls) -> bool:
         """Validate required configuration settings."""
-        errors = []
-        
-        if not cls.VENICE_API_KEY:
-            errors.append("VENICE_API_KEY is not set")
-        
         if not cls.MODEL_DIR.exists():
             cls.MODEL_DIR.mkdir(parents=True, exist_ok=True)
-        
-        if errors:
-            raise ValueError(f"Configuration errors: {', '.join(errors)}")
-        
         return True
     
     @classmethod
