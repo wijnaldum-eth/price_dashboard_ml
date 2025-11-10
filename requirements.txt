@@ -22,5 +22,4 @@ python-dotenv==1.0.0
 python-dateutil==2.8.2
 streamlit-option-menu==0.3.13
 
-# Python version
-python_version = "3.11.6"
+# Note: Python version is specified in runtime.txt for Streamlit Cloud
