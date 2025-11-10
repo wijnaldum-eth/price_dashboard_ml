@@ -34,3 +34,8 @@ class ModelError(Exception):
 class DataProcessingError(Exception):
     """Exception raised for data processing errors."""
     pass
+
+
+class DatabaseError(Exception):
+    """Exception raised for database-related errors."""
+    pass

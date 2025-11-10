@@ -71,7 +71,7 @@ class Settings:
     # Tracked cryptocurrencies (Pyth Network compatible IDs)
     TRACKED_COINS = [
         'bitcoin', 'ethereum', 'solana', 'cardano', 'polkadot',
-        'avalanche-2', 'matic-network', 'chainlink', 'uniswap', 'cosmos'
+        'avalanche-2', 'polygon', 'chainlink', 'uniswap', 'cosmos'
     ]
     
     # API Provider (pyth or coingecko)
@@ -84,7 +84,7 @@ class Settings:
         "cardano": "Cardano (ADA)",
         "polkadot": "Polkadot (DOT)",
         "avalanche-2": "Avalanche (AVAX)",
-        "polygon": "Polygon (MATIC)",
+        "polygon": "Polygon (POL)",
         "chainlink": "Chainlink (LINK)",
         "uniswap": "Uniswap (UNI)",
         "cosmos": "Cosmos (ATOM)"

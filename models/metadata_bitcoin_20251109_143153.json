@@ -1,0 +1,22 @@
+{
+  "epochs_trained": 50,
+  "final_loss": 0.08607764542102814,
+  "final_val_loss": 0.09781698137521744,
+  "best_val_loss": 0.09663069993257523,
+  "metrics": {
+    "rmse": 0.28122258286125457,
+    "mae": 0.24427880243565195,
+    "mape": 325.336826609733
+  },
+  "hyperparameters": {
+    "lstm_units": 50,
+    "dropout_rate": 0.2,
+    "dense_units": 25,
+    "batch_size": 32,
+    "epochs": 50,
+    "validation_split": 0.1,
+    "learning_rate": 0.001
+  },
+  "training_date": "2025-11-09T14:31:53.784294",
+  "model_path": "models/lstm_bitcoin_20251109_143136.h5"
+}

@@ -10,7 +10,8 @@ A production-ready, real-time cryptocurrency market intelligence dashboard built
 ## ✨ Features
 
 ### Currently Implemented ✅
-- **📊 Real-time Market Data**: Track top 10 cryptocurrencies with live price updates
+- **📊 Real-time Market Data**: Track top 10 cryptocurrencies with live price updates via Pyth Network
+- **🔮 Pyth Network Integration**: Sub-second price feeds from 90+ first-party data providers
 - **💼 Portfolio Simulator**: Calculate portfolio value, allocation, and performance
 - **📈 Price Comparison**: Compare multiple cryptocurrencies with normalized charts
 - **🎨 Interactive Visualizations**: Beautiful Plotly charts with dark theme
@@ -36,7 +37,8 @@ crypto-dashboard/
 │   ├── 4_🤖_AI_Insights.py     # Venice AI analysis (coming soon)
 │   └── 5_📰_News_Sentiment.py  # Sentiment analysis (coming soon)
 ├── utils/                      # Core utilities
-│   ├── api_client.py          # CoinGecko API wrapper
+│   ├── pyth_client.py         # Pyth Network Hermes API wrapper
+│   ├── api_client.py          # CoinGecko API wrapper (fallback)
 │   ├── venice_client.py       # Venice AI wrapper (coming soon)
 │   ├── cache_manager.py       # Redis caching layer
 │   ├── data_processing.py     # Technical indicators & data cleaning
@@ -152,7 +154,7 @@ Currently tracking top 10 coins (configurable in `config/settings.py`):
 - Cardano (ADA)
 - Polkadot (DOT)
 - Avalanche (AVAX)
-- Polygon (MATIC)
+- Polygon (POL) - *Updated from MATIC*
 - Chainlink (LINK)
 - Uniswap (UNI)
 - Cosmos (ATOM)
@@ -220,6 +222,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
+- [Pyth Network](https://pyth.network/) for real-time, first-party oracle data
 - [CoinGecko](https://www.coingecko.com/) for free cryptocurrency data API
 - [Streamlit](https://streamlit.io/) for the amazing web framework
 - [Venice AI](https://venice.ai/) for AI-powered insights

@@ -1,0 +1,40 @@
+{
+  "epochs_trained": 31,
+  "final_loss": 0.08664552122354507,
+  "final_val_loss": 0.09582225233316422,
+  "best_val_loss": 0.09415995329618454,
+  "metrics": {
+    "rmse": 0.27905851567353174,
+    "mae": 0.24058126842682664,
+    "mape": 313.63939846331215
+  },
+  "hyperparameters": {
+    "lstm_units": 50,
+    "dropout_rate": 0.2,
+    "dense_units": 25,
+    "batch_size": 32,
+    "epochs": 50,
+    "validation_split": 0.1,
+    "learning_rate": 0.001
+  },
+  "training_date": "2025-11-09T20:32:20.948434",
+  "model_path": "models/lstm_ethereum_20251109_203209.h5",
+  "scaler": {
+    "data_min": [
+      3345.201475274429
+    ],
+    "data_max": [
+      3696.7892881644634
+    ],
+    "data_range": [
+      351.58781289003446
+    ],
+    "scale": [
+      0.0028442396560337214
+    ],
+    "min": [
+      -9.51455469339804
+    ],
+    "fitted": true
+  }
+}

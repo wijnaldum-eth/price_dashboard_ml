@@ -1,0 +1,40 @@
+{
+  "epochs_trained": 20,
+  "final_loss": 0.0813385471701622,
+  "final_val_loss": 0.07833131402730942,
+  "best_val_loss": 0.07812078297138214,
+  "metrics": {
+    "rmse": 0.30057677940349575,
+    "mae": 0.2667711092979882,
+    "mape": 324.29220713789437
+  },
+  "hyperparameters": {
+    "lstm_units": 50,
+    "dropout_rate": 0.2,
+    "dense_units": 25,
+    "batch_size": 32,
+    "epochs": 50,
+    "validation_split": 0.1,
+    "learning_rate": 0.001
+  },
+  "training_date": "2025-11-09T20:36:05.651105",
+  "model_path": "models/lstm_solana_20251109_203554.h5",
+  "scaler": {
+    "data_min": [
+      154.29028295730214
+    ],
+    "data_max": [
+      170.49638130501435
+    ],
+    "data_range": [
+      16.206098347712214
+    ],
+    "scale": [
+      0.06170516669369517
+    ],
+    "min": [
+      -9.520507629097724
+    ],
+    "fitted": true
+  }
+}

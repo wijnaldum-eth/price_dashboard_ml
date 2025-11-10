@@ -6,7 +6,7 @@ Uses Hermes API for fast, reliable price feeds.
 import requests
 import logging
 from typing import Dict, List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 import time
 
 from config.settings import settings
@@ -18,14 +18,15 @@ logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL))
 logger = logging.getLogger(__name__)
 
 # Pyth Network price feed IDs for major cryptocurrencies
+# Verified against Hermes API v2 - Last updated: 2025-01-09
 PYTH_PRICE_FEED_IDS = {
     'bitcoin': '0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43',  # BTC/USD
     'ethereum': '0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace',  # ETH/USD
     'solana': '0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d',  # SOL/USD
     'cardano': '0x2a01deaec9e51a579277b34b122399984d0bbf57e2458a7e42fecd2829867a0d',  # ADA/USD
-    'polkadot': '0xbfaf7739cb6fe3e1c57a0ac08e1d931e9e6062d476fa57804e165ab572b5b621',  # DOT/USD
+    'polkadot': '0xca3eed9b267293f6595901c734c7525ce8ef49adafe8284606ceb307afa2ca5b',  # DOT/USD (UPDATED)
     'avalanche-2': '0x93da3352f9f1d105fdfe4971cfa80e9dd777bfc5d0f683ebb6e1294b92137bb7',  # AVAX/USD
-    'matic-network': '0x5de33a9112c2b700b8d30b8a3402c103578ccfa2765696471cc672bd5cf6ac52',  # MATIC/USD
+    'polygon': '0xffd11c5a1cfd42f80afb2df4d9f264c15f956d68153335374ec10722edd70472',  # POL/USD (formerly MATIC)
     'chainlink': '0x8ac0c70fff57e9aefdf5edf44b51d62c2d433653cbb2cf5cc06bb115af04d221',  # LINK/USD
     'uniswap': '0x78d185a741d07edb3412b09008b7c5cfb9bbbd7d568bf00ba737b456ba171501',  # UNI/USD
     'cosmos': '0xb00b60f88b03a6a625a8d1c048c3f66653edf217439983d037e7222c4e612819',  # ATOM/USD
@@ -39,7 +40,7 @@ PYTH_COIN_NAMES = {
     'cardano': 'Cardano',
     'polkadot': 'Polkadot',
     'avalanche-2': 'Avalanche',
-    'matic-network': 'Polygon',
+    'polygon': 'Polygon',
     'chainlink': 'Chainlink',
     'uniswap': 'Uniswap',
     'cosmos': 'Cosmos',
@@ -52,7 +53,7 @@ PYTH_COIN_SYMBOLS = {
     'cardano': 'ADA',
     'polkadot': 'DOT',
     'avalanche-2': 'AVAX',
-    'matic-network': 'MATIC',
+    'polygon': 'POL',
     'chainlink': 'LINK',
     'uniswap': 'UNI',
     'cosmos': 'ATOM',
@@ -147,11 +148,12 @@ class PythNetworkClient:
             logger.warning(f"No valid price feeds found for coins: {coin_ids}")
             return {}
         
-        # Build query parameters
-        params = {'ids[]': feed_ids}
+        # Build query parameters - Pyth uses 'ids[]' array notation
+        # requests library requires a list of tuples for repeated parameters
+        params = [('ids[]', feed_id) for feed_id in feed_ids]
         
         try:
-            data = self._make_request('/v2/updates/price/latest', params=params)
+            data = self._make_request('/api/latest_price_feeds', params=params)
             
             # Transform Pyth response to match our expected format
             result = {}
@@ -159,11 +161,17 @@ class PythNetworkClient:
             # Create reverse mapping of feed IDs to coin IDs
             feed_id_to_coin = {v: k for k, v in PYTH_PRICE_FEED_IDS.items()}
             
-            for price_feed in data.get('parsed', []):
+            # Pyth API returns array directly, not nested in 'parsed'
+            price_feeds = data if isinstance(data, list) else data.get('parsed', [])
+            
+            for price_feed in price_feeds:
                 feed_id = price_feed['id']
-                coin_id = feed_id_to_coin.get(feed_id)
+                # API returns IDs without 0x prefix, but our dict has them with 0x
+                feed_id_with_prefix = f"0x{feed_id}" if not feed_id.startswith('0x') else feed_id
+                coin_id = feed_id_to_coin.get(feed_id_with_prefix)
                 
                 if not coin_id:
+                    logger.warning(f"Unknown feed ID: {feed_id}")
                     continue
                 
                 price_data = price_feed.get('price', {})
@@ -189,7 +197,7 @@ class PythNetworkClient:
                     'price_change_percentage_24h': price_change_24h,
                     'market_cap': current_price * 1000000000,  # Placeholder
                     'total_volume': current_price * 100000000,  # Placeholder
-                    'last_updated': datetime.fromtimestamp(price_data.get('publish_time', time.time())).isoformat(),
+                    'last_updated': datetime.fromtimestamp(price_data.get('publish_time', time.time()), tz=timezone.utc).isoformat(),
                     'confidence': int(price_data.get('conf', 0)) * (10 ** expo),
                     'ema_price': ema_price,
                     'sparkline_7d': None,  # Not available from Pyth

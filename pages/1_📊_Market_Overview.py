@@ -83,7 +83,7 @@ def render_metric_card(coin_data, col):
 
 def main():
     st.title("📊 Market Overview")
-    st.markdown("Real-time cryptocurrency prices and market data")
+    st.markdown("Real-time cryptocurrency prices powered by **Pyth Network** 🔮")
     
     # Header with refresh button
     col1, col2, col3 = st.columns([2, 1, 1])

@@ -1,0 +1,40 @@
+{
+  "epochs_trained": 34,
+  "final_loss": 0.08533000200986862,
+  "final_val_loss": 0.08445527404546738,
+  "best_val_loss": 0.08358701318502426,
+  "metrics": {
+    "rmse": 0.2817460172118867,
+    "mae": 0.24299763631877927,
+    "mape": 171.347447568679
+  },
+  "hyperparameters": {
+    "lstm_units": 50,
+    "dropout_rate": 0.2,
+    "dense_units": 25,
+    "batch_size": 32,
+    "epochs": 50,
+    "validation_split": 0.1,
+    "learning_rate": 0.001
+  },
+  "training_date": "2025-11-09T18:14:45.958967",
+  "model_path": "models/lstm_bitcoin_20251109_181433.h5",
+  "scaler": {
+    "data_min": [
+      98593.35834373678
+    ],
+    "data_max": [
+      108951.76732807743
+    ],
+    "data_range": [
+      10358.408984340655
+    ],
+    "scale": [
+      9.653992244482256e-05
+    ],
+    "min": [
+      -9.518195168078947
+    ],
+    "fitted": true
+  }
+}
