@@ -1,23 +1,26 @@
 # Core Framework
-streamlit>=1.28.0,<1.29.0
+streamlit==1.28.2
 
 # Data Processing
-pandas>=2.0.0,<2.1.0
-numpy>=1.24.0,<1.25.0
+pandas==2.0.3
+numpy==1.24.4
 
 # Visualization
-plotly>=5.18.0
+plotly==5.18.0
 
 # API & HTTP
-requests>=2.31.0
-aiohttp>=3.9.0
+requests==2.31.0
+aiohttp==3.9.0
 
 # Caching
-redis-py>=5.0.1
+redis==5.0.1
 
 # Configuration
-python-dotenv>=1.0.0
+python-dotenv==1.0.0
 
 # Utilities
-python-dateutil>=2.8.2
-streamlit-option-menu>=0.3.13
+python-dateutil==2.8.2
+streamlit-option-menu==0.3.13
+
+# Python version
+python_version = "3.11.6"
