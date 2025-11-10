@@ -19,15 +19,39 @@ class Settings:
     BASE_DIR = Path(__file__).parent.parent
     MODEL_DIR = BASE_DIR / "models"
     
-    # Venice AI Configuration
-    VENICE_API_KEY: str = os.getenv("VENICE_API_KEY", "")
+    # Check if running on Streamlit Cloud
+    IS_STREAMLIT_CLOUD = os.getenv('IS_STREAMLIT_CLOUD', '').lower() == 'true'
+    
+    # Get configuration from Streamlit secrets in cloud environment
+    try:
+        import streamlit as st
+        if IS_STREAMLIT_CLOUD:
+            # Venice AI Configuration from Streamlit secrets
+            VENICE_API_KEY: str = st.secrets.get("venice", {}).get("api_key", "")
+        else:
+            VENICE_API_KEY: str = os.getenv("VENICE_API_KEY", "")
+    except ImportError:
+        VENICE_API_KEY: str = os.getenv("VENICE_API_KEY", "")
     VENICE_API_URL: str = "https://api.venice.ai/v1"
     
     # Redis Configuration
-    REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
-    REDIS_PORT: int = int(os.getenv("REDIS_PORT", "6379"))
-    REDIS_DB: int = int(os.getenv("REDIS_DB", "0"))
-    REDIS_PASSWORD: Optional[str] = os.getenv("REDIS_PASSWORD")
+    try:
+        import streamlit as st
+        if IS_STREAMLIT_CLOUD:
+            REDIS_HOST: str = st.secrets.get("redis", {}).get("host", "")
+            REDIS_PORT: int = int(st.secrets.get("redis", {}).get("port", "6379"))
+            REDIS_DB: int = int(st.secrets.get("redis", {}).get("db", "0"))
+            REDIS_PASSWORD: Optional[str] = st.secrets.get("redis", {}).get("password", None)
+        else:
+            REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
+            REDIS_PORT: int = int(os.getenv("REDIS_PORT", "6379"))
+            REDIS_DB: int = int(os.getenv("REDIS_DB", "0"))
+            REDIS_PASSWORD: Optional[str] = os.getenv("REDIS_PASSWORD")
+    except ImportError:
+        REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
+        REDIS_PORT: int = int(os.getenv("REDIS_PORT", "6379"))
+        REDIS_DB: int = int(os.getenv("REDIS_DB", "0"))
+        REDIS_PASSWORD: Optional[str] = os.getenv("REDIS_PASSWORD")
     
     # Application Configuration
     APP_ENV: str = os.getenv("APP_ENV", "development")
